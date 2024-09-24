@@ -72,14 +72,13 @@ const LoginPage = () => {
       );
       const user = userCredential.user;
 
-      // Store additional user information in Firestore (password removed)
       await setDoc(doc(db, "users", user.uid), {
         full_name,
         email,
         phone_number,
         address,
         username,
-        user_type, // Correctly set user type
+        user_type, 
       });
 
       message.success("Registration successful!");
@@ -89,7 +88,6 @@ const LoginPage = () => {
     }
   };
 
-  // Sign In with Firebase using email and password
   const handleLogin = async (e) => {
     e.preventDefault();
 
