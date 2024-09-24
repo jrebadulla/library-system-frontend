@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../Connection/firebaseConfig";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../Connection/firebaseConfig";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import {
   createUserWithEmailAndPassword,
@@ -16,6 +17,7 @@ const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -63,6 +65,11 @@ const LoginPage = () => {
         password
       );
       const user = userCredential.user;
+      const storage = getStorage();
+      const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+      await uploadBytes(storageRef, profilePicture);
+
+      const profilePictureUrl = await getDownloadURL(storageRef);
 
       await setDoc(doc(db, "users", user.uid), {
         full_name,
@@ -71,6 +78,7 @@ const LoginPage = () => {
         address,
         username,
         user_type,
+        profile_picture: profilePictureUrl,
       });
 
       message.success("Registration successful!");
@@ -81,7 +89,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -89,15 +97,25 @@ const LoginPage = () => {
         password
       );
       const user = userCredential.user;
-
+  
+      // Fetch user data from Firestore
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
-
+  
       if (docSnap.exists()) {
         const userData = docSnap.data();
+  
+        // Store user data in localStorage
         localStorage.setItem("full_name", userData.full_name);
         localStorage.setItem("user_type", userData.user_type);
-
+  
+        // Store the profile picture URL in localStorage if it exists
+        if (userData.profile_picture) {
+          localStorage.setItem("profile_picture", userData.profile_picture);
+        } else {
+          localStorage.removeItem("profile_picture"); // Clear if no picture is found
+        }
+  
         message.success("Login successful!");
         navigate("/dashboard");
       } else {
@@ -173,6 +191,13 @@ const LoginPage = () => {
                 Basic Education Staff
               </option>
             </select>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setProfilePicture(e.target.files[0])}
+              required
+            />
+
             <button type="submit">Sign Up</button>
           </form>
         </div>
