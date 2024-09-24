@@ -4,8 +4,9 @@ import logo from "./Image/logo-svcc.png";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../Connection/firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../Connection/firebaseConfig";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -55,15 +56,6 @@ const LoginPage = () => {
       username,
     } = formData;
 
-    console.log({
-      full_name,
-      email,
-      phone_number,
-      address,
-      user_type,
-      username,
-    });
-
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -78,11 +70,10 @@ const LoginPage = () => {
         phone_number,
         address,
         username,
-        user_type, 
+        user_type,
       });
 
       message.success("Registration successful!");
-      navigate("/dashboard");
     } catch (error) {
       message.error(error.message);
     }
@@ -92,9 +83,26 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      message.success("Login successful!");
-      navigate("/dashboard");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        localStorage.setItem("full_name", userData.full_name);
+        localStorage.setItem("user_type", userData.user_type);
+
+        message.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        message.error("No additional user details found.");
+      }
     } catch (error) {
       message.error(error.message);
     }
@@ -205,7 +213,11 @@ const LoginPage = () => {
                 To be the leading privately managed integrated community college
                 by 2030
               </p>
-              <button className="hidden" onClick={handleRegisterClick} id="register">
+              <button
+                className="hidden"
+                onClick={handleRegisterClick}
+                id="register"
+              >
                 Sign Up
               </button>
             </div>
