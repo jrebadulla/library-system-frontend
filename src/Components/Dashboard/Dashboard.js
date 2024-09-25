@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import { UserOutlined } from "@ant-design/icons";
 import { Avatar, message } from "antd";
 import { db } from "../Connection/firebaseConfig";
 import ManageBook from "./ManageBook";
@@ -10,6 +9,9 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("manageBook");
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const fullName = localStorage.getItem("full_name");
+  const userType = localStorage.getItem("user_type");
+  const profilePicture = localStorage.getItem("profile_picture");
 
   const columns = [
     {
@@ -60,15 +62,15 @@ const Dashboard = () => {
   return (
     <div className="librarian-container">
       <div className="left-side-container">
-        <Avatar className="user-avatar" size={80} icon={<UserOutlined />} />
-        <p>Teacher Name</p>
-        <p className="p">User Type</p>
+        <Avatar className="user-avatar" size={80} src={profilePicture} />
+        <p>{fullName}</p>
+        <p className="p">{userType}</p>
         <div className="categories-buttons">
           <button onClick={() => setActiveTab("manageBook")}>
             Manage Book
           </button>
           <button onClick={() => setActiveTab("manageStudent")}>
-            Manage Student
+            Manage Users
           </button>
           <button onClick={() => setActiveTab("reserveBook")}>
             Reserve Book
