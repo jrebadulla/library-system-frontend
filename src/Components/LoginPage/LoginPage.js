@@ -4,8 +4,10 @@ import logo from "./Image/logo-svcc.png";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../Connection/firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../Connection/firebaseConfig";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -15,6 +17,7 @@ const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -55,15 +58,6 @@ const LoginPage = () => {
       username,
     } = formData;
 
-    console.log({
-      full_name,
-      email,
-      phone_number,
-      address,
-      user_type,
-      username,
-    });
-
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -71,32 +65,59 @@ const LoginPage = () => {
         password
       );
       const user = userCredential.user;
+      const storage = getStorage();
+      const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+      await uploadBytes(storageRef, profilePicture);
 
-      // Store additional user information in Firestore (password removed)
+      const profilePictureUrl = await getDownloadURL(storageRef);
+
       await setDoc(doc(db, "users", user.uid), {
         full_name,
         email,
         phone_number,
         address,
         username,
-        user_type, // Correctly set user type
+        user_type,
+        profile_picture: profilePictureUrl,
       });
 
       message.success("Registration successful!");
-      navigate("/dashboard");
     } catch (error) {
       message.error(error.message);
     }
   };
 
-  // Sign In with Firebase using email and password
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      message.success("Login successful!");
-      navigate("/dashboard");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+  
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+  
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+  
+        localStorage.setItem("full_name", userData.full_name);
+        localStorage.setItem("user_type", userData.user_type);
+  
+        if (userData.profile_picture) {
+          localStorage.setItem("profile_picture", userData.profile_picture);
+        } else {
+          localStorage.removeItem("profile_picture"); 
+        }
+  
+        message.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        message.error("No additional user details found.");
+      }
     } catch (error) {
       message.error(error.message);
     }
@@ -167,6 +188,13 @@ const LoginPage = () => {
                 Basic Education Staff
               </option>
             </select>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setProfilePicture(e.target.files[0])}
+              required
+            />
+
             <button type="submit">Sign Up</button>
           </form>
         </div>
@@ -207,7 +235,11 @@ const LoginPage = () => {
                 To be the leading privately managed integrated community college
                 by 2030
               </p>
-              <button className="hidden" onClick={handleRegisterClick} id="register">
+              <button
+                className="hidden"
+                onClick={handleRegisterClick}
+                id="register"
+              >
                 Sign Up
               </button>
             </div>
