@@ -98,22 +98,19 @@ const LoginPage = () => {
       );
       const user = userCredential.user;
   
-      // Fetch user data from Firestore
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
   
       if (docSnap.exists()) {
         const userData = docSnap.data();
   
-        // Store user data in localStorage
         localStorage.setItem("full_name", userData.full_name);
         localStorage.setItem("user_type", userData.user_type);
   
-        // Store the profile picture URL in localStorage if it exists
         if (userData.profile_picture) {
           localStorage.setItem("profile_picture", userData.profile_picture);
         } else {
-          localStorage.removeItem("profile_picture"); // Clear if no picture is found
+          localStorage.removeItem("profile_picture"); 
         }
   
         message.success("Login successful!");
