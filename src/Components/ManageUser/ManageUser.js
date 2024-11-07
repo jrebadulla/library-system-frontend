@@ -10,12 +10,15 @@ const ManageUser = () => {
   const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); 
 
   // Fetch users on component mount
   useEffect(() => {
     setLoading(true);
     fetchUsers().then((userList) => {
       setUsers(userList);
+      setFilteredUsers(userList);
       setLoading(false);
     });
   }, []);
@@ -43,7 +46,7 @@ const ManageUser = () => {
     fetchUsers().then((userList) => {
       setUsers(userList);
       setLoading(false);
-      handleCloseModal(); 
+      handleCloseModal();
     });
   };
 
@@ -53,6 +56,21 @@ const ManageUser = () => {
     await deleteUser(userId);
     setUsers(users.filter((user) => user.id !== userId));
     setLoading(false);
+  };
+
+  const onSearch = (query) => {
+    setSearchQuery(query);
+    if (query) {
+      const filtered = users.filter(
+        (user) =>
+          user.full_name.toLowerCase().includes(query.toLowerCase()) ||
+          user.user_type.toLowerCase().includes(query.toLowerCase()) ||
+          user.address.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    } else {
+      setFilteredUsers(users);
+    }
   };
 
   const columns = [
@@ -77,7 +95,11 @@ const ManageUser = () => {
             Edit
           </Button>
           <span className="divider">|</span>
-          <Button type="link" danger onClick={() => handleDeleteUser(record.id)}>
+          <Button
+            type="link"
+            danger
+            onClick={() => handleDeleteUser(record.id)}
+          >
             Delete
           </Button>
           <span className="divider">|</span>
@@ -101,23 +123,35 @@ const ManageUser = () => {
         <button className="add-book" onClick={showAddUserModal}>
           <PlusCircleOutlined className="plus-icon" /> Add New User
         </button>
-        <Search className="custom-search" placeholder="Search user here..." allowClear size="large" />
+        <Search
+          className="custom-search"
+          placeholder="Search user here..."
+          allowClear
+          size="large"
+          onSearch={onSearch}
+          value={searchQuery}
+          onChange={(e) => onSearch(e.target.value)}
+        />
       </div>
       {loading ? (
-        <Spin tip="Loading users..." style={{ display: "block", textAlign: "center", marginTop: 20 }} />
+        <Spin
+          tip="Loading users..."
+          className="custom-spin"
+          style={{ display: "block", textAlign: "center", marginTop: 20 }}
+        />
       ) : (
-        <Table dataSource={users} columns={columns} rowKey="id" />
+        <Table dataSource={filteredUsers} columns={columns} rowKey="id" />
       )}
       <Modal
         title={editingUser ? "Edit User" : "Add New User"}
         open={isModalOpen}
-        onCancel={handleCloseModal} 
+        onCancel={handleCloseModal}
         footer={null}
       >
         <UserForm
           initialValues={editingUser || {}}
           onFinish={handleSaveUser}
-          onCancel={handleCloseModal} 
+          onCancel={handleCloseModal}
         />
       </Modal>
     </div>
@@ -140,19 +174,47 @@ const UserForm = ({ initialValues, onFinish, onCancel }) => {
       }}
       layout="vertical"
     >
-      <Form.Item name="full_name" label="Full Name" rules={[{ required: true, message: "Please input the user's full name!" }]}>
+      <Form.Item
+        name="full_name"
+        label="Full Name"
+        rules={[
+          { required: true, message: "Please input the user's full name!" },
+        ]}
+      >
         <Input />
       </Form.Item>
-      <Form.Item name="email" label="Email" rules={[{ required: true, message: "Please input the user's email!" }]}>
+      <Form.Item
+        name="email"
+        label="Email"
+        rules={[{ required: true, message: "Please input the user's email!" }]}
+      >
         <Input />
       </Form.Item>
-      <Form.Item name="phone_number" label="Phone Number" rules={[{ required: true, message: "Please input the user's phone number!" }]}>
+      <Form.Item
+        name="phone_number"
+        label="Phone Number"
+        rules={[
+          { required: true, message: "Please input the user's phone number!" },
+        ]}
+      >
         <Input />
       </Form.Item>
-      <Form.Item name="address" label="Address" rules={[{ required: true, message: "Please input the user's address!" }]}>
+      <Form.Item
+        name="address"
+        label="Address"
+        rules={[
+          { required: true, message: "Please input the user's address!" },
+        ]}
+      >
         <Input />
       </Form.Item>
-      <Form.Item name="username" label="User Name" rules={[{ required: true, message: "Please input the user's username!" }]}>
+      <Form.Item
+        name="username"
+        label="User Name"
+        rules={[
+          { required: true, message: "Please input the user's username!" },
+        ]}
+      >
         <Input />
       </Form.Item>
       <Form.Item
