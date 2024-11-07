@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./Dashboard.css";
 import { Avatar } from "antd";
-import ManageBook from "./ManageBook";
 import {
   BarChartOutlined,
   BookOutlined,
@@ -15,6 +14,7 @@ import TeacherDashboard from "../TeacherDashboard/TeacherDashboard";
 import ReserveBook from "./ReserveBook";
 import Analytics from "./Analytics";
 import ManageUser from "../ManageUser/ManageUser";
+import ManageBook from "../ManageBook/ManageBook";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("manageBook");
