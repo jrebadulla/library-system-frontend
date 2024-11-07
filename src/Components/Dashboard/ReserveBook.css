@@ -1,0 +1,53 @@
+.reservebook-container {
+  padding: 20px;
+}
+
+.ant-tabs-nav {
+  justify-content: flex-start;
+}
+
+.approve-button,
+.decline-button {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out, transform 0.3s ease;
+  margin-right: 8px;
+}
+
+.approve-button {
+  background-color: #28a745;
+}
+
+.approve-button:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+.decline-button {
+  background-color: #dc3545;
+}
+
+.decline-button:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
+}
+
+.approve-button,
+.decline-button {
+  margin: 0 8px;
+}
+
+.custom-tag {
+    border-radius: 20px;      
+    padding: 2px 8px;           
+    display: inline-block;       
+    line-height: 1.5;            
+    white-space: nowrap;    
+    font-size: 14px;     
+  }
+  
